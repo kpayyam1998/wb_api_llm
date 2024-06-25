@@ -1,0 +1,6 @@
+openai
+langchain-openai
+python-dotenv
+flask
+ngrok==1.3.0
+twilio
