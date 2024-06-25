@@ -81,10 +81,10 @@ def prompt_template():
 # Retrival
 #----------------------------------------------------------------
 def retrivalQA():
-    dir_path="../vectorstores/db_faiss/"
+    dir_path="./vectorstores/db_faiss/"
     llm=OpenAI(api_key=OPENAI_API_KEY)
     custom_prompt=prompt_template()
-    vector_db=FAISS.load_local(dir_path,OpenAIEmbeddings(api_key=OPENAI_API_KEY),allow_dangerous_deserialization=True)
+    vector_db=FAISS.load_local(folder_path=dir_path,embeddings=OpenAIEmbeddings(api_key=OPENAI_API_KEY),allow_dangerous_deserialization=True)
     chain=RetrievalQA.from_chain_type(
         llm=llm,
         chain_type="stuff",
@@ -109,6 +109,6 @@ def get_response(question):
 
     
 
-# if __name__=='__main__':
-#     res=get_response("who is Dr.Gali Nageswara?")
-#     print(res['response'])
+if __name__=='__main__':
+    res=get_response("who is Dr.Gali Nageswara?")
+    print(res['response'])
