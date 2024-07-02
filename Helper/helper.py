@@ -23,7 +23,7 @@ TWILIO_AUTH_TOKEN=os.getenv('TWILIO_AUTH_TOKEN')
 openai.api_key=OPENAI_API_KEY
 
 #----------------------------------------------------------------
-# generate message
+# generate message using prompt
 #----------------------------------------------------------------
 def generate_message(question) ->dict:
 
@@ -35,24 +35,25 @@ def generate_message(question) ->dict:
     """
 
     try:
-        response = openai.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": question}
-                
-            ],
-            temperature=1,
-            max_tokens=100,
-            top_p=1,
-            frequency_penalty=0.5,
-            presence_penalty=0.5
-        )
-        return {
-                 "status":1,
-                 "response":response.choices[0].message.content.strip()
-                }
-    
+        if question:
+            response = openai.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are a helpful assistant."},
+                    {"role": "user", "content": question}
+                    
+                ],
+                temperature=1,
+                max_tokens=100,
+                top_p=1,
+                frequency_penalty=0.5,
+                presence_penalty=0.5
+            )
+            return {
+                    "status":1,
+                    "response":response.choices[0].message.content.strip()
+                    }
+        
     except:
         return {
                  "status":0,
@@ -81,8 +82,13 @@ def prompt_template():
 # Retrival
 #----------------------------------------------------------------
 def retrivalQA():
+    # Retrieve db connection path
     dir_path="./vectorstores/db_faiss/"
+    
+    # Create LLM and Prompt
     llm=OpenAI(api_key=OPENAI_API_KEY)
+
+    # Create custom prompt and Vector DB  for retrievalQA  chain.
     custom_prompt=prompt_template()
     vector_db=FAISS.load_local(folder_path=dir_path,embeddings=OpenAIEmbeddings(api_key=OPENAI_API_KEY),allow_dangerous_deserialization=True)
     chain=RetrievalQA.from_chain_type(
@@ -99,9 +105,14 @@ def retrivalQA():
 #Response
 #----------------------------------------------------------------
 def get_response(question):
+
     chain=retrivalQA()
     response=chain({'query': question})
-
+    # check response is empty or not found
+    if not response['result']:
+        return ValueError("No response found for your question")
+    
+    # check if the response is a list of documents
     return {
         "status":1,
         "response":response['result']   
